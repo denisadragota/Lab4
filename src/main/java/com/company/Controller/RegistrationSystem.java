@@ -272,17 +272,31 @@ public class RegistrationSystem {
         /*update all students*/
         this.updateStudentsCredits();
     }
+
+    /**
+     * adds a new course to the Course repo,
+     * adds the Teacher to the Teacher repo if he is new
+     * and updates the teacher's course list
+     * @param c course to be added
+     * @throws NullException if course is null
+     */
     public void addCourse(Course c)throws NullException{
+        //saving course to the Course repo
         this.coursesRepo.save(c);
 
+        //updating the course list of the Teacher
         Teacher newTeacher=(Teacher)c.getTeacher();
         List<Course> updatedCourses = newTeacher.getCourses();
         updatedCourses.add(c);
         newTeacher.setCourses(updatedCourses);
+        //adding the teacher to the Teacher repo, if he is new
         if (this.teachersRepo.findOne(newTeacher.getTeacherId())==null){
             this.teachersRepo.save(newTeacher);
-        }else
-        this.teachersRepo.update(newTeacher);
+        }
+        else //updating the course list of the teacher
+        {
+            this.teachersRepo.update(newTeacher);
+        }
     }
 
 

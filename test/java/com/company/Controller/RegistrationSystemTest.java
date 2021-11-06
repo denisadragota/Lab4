@@ -37,6 +37,7 @@ class RegistrationSystemTest {
     private Course course3;
     private Course course4;
     private Course course5;
+    private Course course6;
 
     private Student student1;
     private Student student2;
@@ -64,6 +65,7 @@ class RegistrationSystemTest {
         course3 = new Course(3, "NewOptional", teacher2, 3, 20);
         course4 = new Course(4, "MAP", teacher1, 20, 5);
         course5 = new Course(5, "Optional2", teacher1, 20, 5);
+        course6 = new Course(6,"Logica",teacher3,10,10);
 
 
         /* adding courses to each teacher*/
@@ -323,6 +325,37 @@ class RegistrationSystemTest {
 
         //asserting the update of credits of the student after deleting the course
         assertEquals(0,regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
+
+    }
+
+    /**
+     * tests the addCourse() method
+     * @throws NullException if course is null
+     */
+    @Test
+    void addCourse()throws NullException{
+        //Case1: adding a new course with an existing teacher in the repo
+        //building the expected result list
+        List<Course> expectedCourses = new ArrayList<>();
+        expectedCourses.add(course1);
+        expectedCourses.add(course2);
+        expectedCourses.add(course3);
+        expectedCourses.add(course5);
+        expectedCourses.add(course4);
+
+        regSystem.addCourse(course4);
+        assertArrayEquals(expectedCourses.toArray(),regSystem.getAllCourses().toArray());
+
+        //Case2: adding a new course with a new teacher in the repo
+        //expected: to add the teacher in the repo
+        regSystem.addCourse(course6);
+        List<Teacher> expectedTeachers = new ArrayList<>();
+        expectedTeachers.add(teacher2);
+        expectedTeachers.add(teacher1);
+        expectedTeachers.add(teacher3);
+
+        assertArrayEquals(expectedTeachers.toArray(),regSystem.getAllTeachers().toArray());
+
 
     }
 }
