@@ -2,22 +2,93 @@ package com.company.Repository;
 
 
 import com.company.Exceptions.NullException;
+import com.company.Model.Course;
 import com.company.Model.Teacher;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * TeacherRepository class extending InMemoryRepository
- * storing and updating Teacher instances in repoList
+ * TeacherRepository class extending FileRepository
+ * reading, storing, updating and saving Teacher instances in repoList and file
  *
  * @version
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
-public class TeacherRepository extends InMemoryRepository<Teacher>{
-    public TeacherRepository(List<Teacher> repoList) {
-        super(repoList);
+public class TeacherRepository extends FileRepository<Teacher>{
+    /**
+     * @param filename is the name of the file where to read the data from
+     * @throws IOException if there occurs an error with the ObjectInputStream
+     */
+    public TeacherRepository(String filename) throws IOException{
+
+        super(filename);
+    }
+
+    /**
+     * if the file does not exist, instances are created and serialized written to the file,
+     * and if the file already exists, than data is being read and saved in a list of teachers
+     * @param filename is the filename where to read data from
+     * @return the teachers list
+     * @throws IOException if there occurs an error with the ObjectInputStream
+     */
+    public ArrayList<Teacher> readFromFile(String filename) throws IOException {
+
+        ArrayList<Teacher> teachers = new ArrayList<>();
+        File file = new File (this.filename);
+
+        //file does not exist, we create instances and write them serialized to the file
+        if (!file.exists()) {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(this.filename));
+            Teacher teacher1 = new Teacher(1, "Catalin", "Rusu");
+            Teacher teacher2 = new Teacher(2, "Diana", "Cristea");
+
+            teachers.add(teacher1);
+            teachers.add(teacher2);
+
+            out.writeObject(teacher1);
+            out.writeObject(teacher2);
+
+            out.close();
+
+        }
+        else //file already exists, data is being read and saved in a list of teachers
+        {
+        ObjectInputStream in = new ObjectInputStream(new FileInputStream(this.filename));
+        try {
+            Teacher new_teacher= null;
+            while ((new_teacher = (Teacher) in.readObject()) != null) {
+                teachers.add(new_teacher);
+            }
+        }catch(EOFException | ClassNotFoundException exc){
+            System.out.println("end of file");
+        }
+        }
+        return teachers;
+    }
+
+
+    /**
+     * the teachers repo list is being saved to the file
+     * @param teachers is the list with teachers to save
+     * @throws IOException if there occurs an error with the ObjectOutputStream
+     */
+    public void write_date(Iterable<Teacher> teachers) throws IOException {
+
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(this.filename));
+        for(int i=0;i<this.repoList.size();i++){
+            out.writeObject(this.repoList.get(i));
+        }
+
+        out.close();
     }
 
     /**
@@ -46,9 +117,10 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
      * @param obj entity must be not null
      * @return null- if the given entity is saved otherwise returns the entity (id already exists)
      * @throws NullException if input parameter entity obj is NULL
+     * @throws IOException if there occurs an error with the ObjectOutputStream
      */
     @Override
-    public Teacher save(Teacher obj) throws NullException {
+    public Teacher save(Teacher obj) throws NullException, IOException {
 
         if(obj==null)
             throw new NullException("Null obj!");
@@ -59,6 +131,9 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
 
         /* add object */
         this.repoList.add(obj);
+
+        //save changes to file
+        this.write_date(this.repoList);
         return null;
     }
 
@@ -68,9 +143,10 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
      * @param obj entity must not be null
      * @return null - if the entity is updated, otherwise returns the entity - (e.g id does not exist).
      * @throws NullException if input parameter entity obj is NULL
+     * @throws IOException if there occurs an error with the ObjectOutputStream
      */
     @Override
-    public Teacher update(Teacher obj) throws NullException {
+    public Teacher update(Teacher obj) throws NullException, IOException {
 
         if(obj==null)
             throw new NullException("Null object!");
@@ -85,9 +161,11 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
         /* update by: removing old instance and adding new given updated instance */
         this.repoList.remove(teacher);
         this.repoList.add(obj);
+
+        //save changes to file
+        this.write_date(this.repoList);
         return null;
     }
-
 
     /**
      * desc: deletes object with given id from the repo list
@@ -95,9 +173,10 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
      * @param id id must be not null
      * @return the removed entity or null if there is no entity with the given id
      * @throws NullException if input parameter id is NULL
+     * @throws IOException if there occurs an error with the ObjectOutputStream
      */
     @Override
-    public Teacher delete(Long id) throws NullException {
+    public Teacher delete(Long id) throws NullException, IOException {
 
         if(id==null)
             throw new NullException("Null id!");
@@ -109,6 +188,9 @@ public class TeacherRepository extends InMemoryRepository<Teacher>{
         /*removing object with the given id */
         Teacher toDelete=this.findOne(id);
         this.repoList.remove(toDelete);
+
+        //save changes to file
+        this.write_date(this.repoList);
         return toDelete;
     }
 

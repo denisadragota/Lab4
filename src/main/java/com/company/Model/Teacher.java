@@ -1,6 +1,8 @@
 package com.company.Model;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * class Teacher extends abstract class Person
@@ -8,19 +10,49 @@ import java.util.List;
  *
  * @version
  *
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
-public class Teacher extends Person{
+public class Teacher extends Person implements Serializable{
     private long teacherId; //unique identifier of an object
-    private List<Course> courses;
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private transient List<Course> courses;
 
     public Teacher(long teacherId, String firstName, String lastName) {
         this.teacherId=teacherId;
-        this.courses = new ArrayList<>();
+        this.courses = new ArrayList<>(){};
         this.firstName=firstName;
         this.lastName=lastName;
+    }
+    public Teacher(){};
+
+
+    /**
+     * writes serialized Student objects to the file
+     * custom serialization for the attribute (teaching courses list) as an empty list
+     * in order to avoid circular references
+     * @param oos is the ObjectOutputStream object
+     * @throws IOException if there occurs an error with the ObjectOutputStream
+     */
+    @Serial
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+        oos.writeObject(new ArrayList<>(){});
+    }
+
+    /**
+     * reads serialized objects from the file,
+     * reads the custom serialized transient attribute (teaching courses list)
+     * @param ois is an ObjectInputStream object
+     * @throws ClassNotFoundException
+     * @throws IOException if there occurs an error with the ObjectInputStream
+     */
+    @Serial
+    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException{
+        ois.defaultReadObject();
+        this.courses=(List<Course>)ois.readObject();
     }
 
     public List<Course> getCourses() {
@@ -48,16 +80,13 @@ public class Teacher extends Person{
                 '}';
     }
 
-    /**
-     * comparation based on id (unique identifier)
-     * @param other, Teacher object to compare with
-     * @return true if objects are equal, else false
-     *
-     */
-    public boolean compareTo(Teacher other) {
-        /* comparing id */
-        if(this.teacherId ==  other.getTeacherId())
-            return true;
-        return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Teacher teacher = (Teacher) o;
+        return teacherId == teacher.teacherId ;
     }
+
+
 }

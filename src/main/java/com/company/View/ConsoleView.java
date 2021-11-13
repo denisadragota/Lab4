@@ -7,44 +7,46 @@ import com.company.Model.Course;
 import com.company.Model.Student;
 import com.company.Model.Teacher;
 
+import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 /**
  * class ConsoleView uses the RegistrationSystem controller
- * provides a menu with options for multiple actions
- * provides Input validation methods
- * Menu options: Enrolling a student to a course, showing students enrolled to a course,
- * sorting students by name, filtering student by having maximum total credits number,
- * showing available courses, adding a new course, updating credits to a course,
- * deleting a course from a teacher, sorting courses by credits number,
- * filtering courses by having moren than 10 credits
+ * provides a menu with student and teacher side, with specific actions
+ * provides Input validation methods, stores currently logged In student or teacher
  * @version
  *
- *          06.11.2021
+ *          13.11.2021
  *  @author
  *          Denisa Dragota
  */
 public class ConsoleView {
-    private RegistrationSystem controller;
-    private Scanner in;
+
+    //storing the current logged In student or teacher
+    private final RegistrationSystem controller;
+    private final Scanner in;
+    private Long loggedStudentId;
+    private Long loggedTeacherId;
 
     public ConsoleView(RegistrationSystem regSystem) {
-        this.controller= regSystem;
+        this.controller = regSystem;
         in = new Scanner(System.in);
+        loggedStudentId = null;
+        loggedTeacherId = null;
     }
-
 
     /**
      * validates that the input is a Long number
      * asks for a new input as long as the given input is not a Long number
+     *
      * @param message shows the message when asking for Input
      * @return the Long number given by the user
      */
-    public Long validateNumberInput(String message){
+    public Long validateNumberInput(String message) {
 
-        long nr=0;
+        long nr = 0;
         boolean option;
         //repeat until input is a Long number
         do {
@@ -59,7 +61,7 @@ public class ConsoleView {
                 in.reset();
                 in.next();
             }
-        }while(!option);
+        } while (!option);
 
         return nr;
     }
@@ -67,27 +69,28 @@ public class ConsoleView {
     /**
      * finds the Student with the given id
      * if the input id does not belong to any Student in the Repo, the input repeats
+     *
      * @return the Student that has id the input number
      */
-    public Student validateStudentInput(){
+    public Student validateStudentInput() {
 
         boolean validStudentId;
         Student givenStudent = null;
         //repeats until input is a valid Student id
         do {
-            validStudentId=true;
-            long stud_id=this.validateNumberInput("\nChoose id of the student you want to enroll");
+            validStudentId = true;
+            long stud_id = this.validateNumberInput("\nChoose id of the student you want to enroll");
 
             try {
                 givenStudent = controller.findOneStudent(stud_id);
                 //no student found
-                if(givenStudent==null)
-                    validStudentId=false;
+                if (givenStudent == null)
+                    validStudentId = false;
             } catch (NullException e) {
                 System.out.println(e.getMessage());
-                validStudentId=false;
+                validStudentId = false;
             }
-        }while(!validStudentId);
+        } while (!validStudentId);
 
         return givenStudent;
     }
@@ -95,76 +98,60 @@ public class ConsoleView {
     /**
      * finds the Course with the given id
      * if the input id does not belong to any Course in the Repo, the input repeats
+     *
      * @return the Course that has id the input number
      */
-    public Course validateCourseInput(){
+    public Course validateCourseInput() {
 
-        Course givenCourse=null;
+        Course givenCourse = null;
         boolean validCourseId;
         //repeats until input is a validCourse id
         do {
-            validCourseId=true;
+            validCourseId = true;
 
             long course_id = this.validateNumberInput("\nChoose course id");
 
             try {
                 givenCourse = controller.findOneCourse(course_id);
                 //no course found
-                if(givenCourse==null)
-                    validCourseId=false;
+                if (givenCourse == null)
+                    validCourseId = false;
             } catch (NullException e) {
                 System.out.println(e.getMessage());
-                validCourseId=false;
+                validCourseId = false;
             }
-        }while(!validCourseId);
+        } while (!validCourseId);
         return givenCourse;
     }
-
-    /**
-     * finds the Teacher with the given id
-     * if the input id does not belong to any Teacher in the Repo, the input repeats
-     * @return the Teacher that has id the input number
-     */
-    public Teacher validateTeacherInput(){
-
-        boolean validTeacherId;
-        Teacher newCourseTeacher=null;
-        //repeats until input is a validCourse id
-        do {
-            long teacher_id = this.validateNumberInput("\nChoose id of teacher");
-            validTeacherId = true;
-            try {
-                newCourseTeacher = controller.findOneTeacher(teacher_id);
-                //no teacher found
-                if (newCourseTeacher == null)
-                    validTeacherId = false;
-            } catch (NullException ex) {
-                System.out.println(ex.getMessage());
-                validTeacherId = false;
-            }
-        } while (!validTeacherId);
-        return newCourseTeacher;
-    }
-
 
     /**
      * gets input from the user the Student id and the Course id,
      * validates the input,
      * enrolls the student to the course
-     *
      */
-    public void option1(){
+    public void option1() {
+        Student givenStudent=null;
+        //if the teacher is logged, he can choose the student to enroll
+        if(loggedStudentId==null) {
+            System.out.println();
+            for (Student stud : controller.getAllStudents()) {
+                System.out.println(stud);
+            }
 
-        System.out.println();
-        for(Student stud: controller.getAllStudents()){
-            System.out.println(stud);
+            //Choosing a Student id
+            givenStudent = this.validateStudentInput();
+        }
+        else //if the student is logged in, he will be enrolled
+        {
+            try {
+                givenStudent = this.controller.findOneStudent(loggedStudentId);
+            }catch(NullException e){
+                System.out.println(e.getMessage());
+            }
         }
 
-        //Choosing a Student id
-        Student givenStudent=this.validateStudentInput();
-
         System.out.println();
-        for(Course course: controller.getAllCourses()){
+        for (Course course : controller.getAllCourses()) {
             System.out.println(course);
         }
         //Choosing a Course id
@@ -173,12 +160,11 @@ public class ConsoleView {
         //register the student to the course
         try {
             controller.register(givenCourse, givenStudent);
-            System.out.println("\nSuccessfully enrolled "+ givenStudent.getFirstName()+" "+givenStudent.getLastName()+ " to course: "+givenCourse.getName());
+            System.out.println("\nSuccessfully enrolled " + givenStudent.getFirstName() + " " + givenStudent.getLastName() + " to course: " + givenCourse.getName());
 
-        }catch(NullException | InputException e ){
+        } catch (NullException | InputException | IOException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
 
@@ -187,45 +173,44 @@ public class ConsoleView {
      * validates the input,
      * shows the students enrolled to that course
      */
-    public void option2(){
+    public void option2() {
 
         System.out.println();
-        for(Course course: controller.getAllCourses()){
+        for (Course course : controller.getAllCourses()) {
             System.out.println(course);
         }
 
         //Choosing a course id
         Course searchedCourse = this.validateCourseInput();
 
-            try {
-                //show students enrolled
-                for (Student s : controller.retrieveStudentsEnrolledForACourse(searchedCourse)) {
-                    System.out.println(s);
-                }
-                System.out.println();
-            }catch(NullException | InputException e){
-                System.out.println(e.getMessage());
+        try {
+            //show students enrolled
+            for (Student s : controller.retrieveStudentsEnrolledForACourse(searchedCourse)) {
+                System.out.println(s);
             }
+            System.out.println();
+        } catch (NullException | InputException e) {
+            System.out.println(e.getMessage());
+        }
 
     }
 
     /**
      * shows the list of students sorted ascending by last name and first name
      */
-    public void option3(){
+    public void option3() {
         System.out.println();
-        for(Student stud: controller.sortStudents()){
+        for (Student stud : controller.sortStudents()) {
             System.out.println(stud);
         }
-
     }
 
     /**
      * shows the list of students filtered by having maximum total credits number
      */
-    public void option4(){
+    public void option4() {
         System.out.println();
-        for(Student stud: controller.filterStudents()){
+        for (Student stud : controller.filterStudents()) {
             System.out.println(stud);
         }
     }
@@ -233,144 +218,146 @@ public class ConsoleView {
     /**
      * shows the courses with free places and how many
      */
-    public void option5(){
+    public void option5() {
         int freePlaces;
-        for (Course course: controller.retrieveCoursesWithFreePlaces()){
-            freePlaces=course.getMaxEnrollment()-course.getStudentsEnrolled().size();
-            System.out.println(freePlaces+" free places in: "+ course);
+        for (Course course : controller.retrieveCoursesWithFreePlaces()) {
+            freePlaces = course.getMaxEnrollment() - course.getStudentsEnrolled().size();
+            System.out.println(freePlaces + " free places in: " + course);
         }
         System.out.println();
     }
 
     /**
      * Adds a new course to the Course Repo,
-     * the user can choose if the course's teacher is new too,
+     * the teacher can choose if the course's teacher is new too,
      * and adds the teacher or updates his courses list
      */
-    public void option6(){
+    public void option6() {
 
-        Teacher newCourseTeacher;
+        Teacher newCourseTeacher=null;
         String answear;
 
         //asks user if the teacher is new or not
         do {
             System.out.println("Teacher of the course is new? Y/N");
             answear = in.next();
-        }while(!answear.equals("Y") && !(answear.equals("N")));
+        } while (!answear.equals("Y") && !(answear.equals("N")));
 
         // add new teacher to the repo
-        if(answear.equals("Y")){
+        if (answear.equals("Y")) {
             System.out.println("Enter First name of the teacher");
-            String newTeacherFirstName= in.next();
+            String newTeacherFirstName = in.next();
 
             System.out.println("Enter Last name of the teacher");
-            String newTeacherLastName= in.next();
+            String newTeacherLastName = in.next();
 
-            Long newTeacherId= ((long) controller.getAllTeachers().size())+1;
-            newCourseTeacher= new Teacher(newTeacherId,newTeacherFirstName,newTeacherLastName);
+            long newTeacherId = ((long) controller.getAllTeachers().size()) + 1;
+            newCourseTeacher = new Teacher(newTeacherId, newTeacherFirstName, newTeacherLastName);
         }
-        //choosing existing teacher from the repo
+        //course will be added to the logged in teacher
         else {
-            System.out.println();
-            for (Teacher teacher : controller.getAllTeachers()) {
-                System.out.println(teacher);
+            try {
+                newCourseTeacher = this.controller.findOneTeacher(this.loggedTeacherId);
+            }catch(NullException e){
+                System.out.println(e.getMessage());
             }
-            newCourseTeacher=this.validateTeacherInput();
         }
 
         System.out.println("Enter name of the course");
-        String newCourseName= in.next();
+        String newCourseName = in.next();
 
         System.out.println("Enter credits number of the course");
-        int newCourseCredits= in.nextInt();
+        int newCourseCredits = in.nextInt();
 
         System.out.println("Enter maximum enrollment number of the course");
-        int newCourseMaxEnrollment= in.nextInt();
+        int newCourseMaxEnrollment = in.nextInt();
 
-        Long newCourseId=((long) controller.getAllCourses().size())+1;
-        Course newCourse = new Course(newCourseId,newCourseName,newCourseTeacher,newCourseMaxEnrollment,newCourseCredits);
+        long newCourseId = ((long) controller.getAllCourses().size()) + 1;
+        Course newCourse = new Course(newCourseId, newCourseName, newCourseTeacher, newCourseMaxEnrollment, newCourseCredits);
         try {
             System.out.println(newCourse);
             //adds course to the repo
             controller.addCourse(newCourse);
-        }catch(NullException e){
+        } catch (NullException | IOException e) {
             System.out.println(e.getMessage());
         }
     }
 
     /**
-     * modify the credits number for a course,
-     * user gives the course id and the new credits number,
+     * teacher can modify the credits number for one of his courses,
+     * teacher gives the course id and the new credits number,
      * input is validated
      */
-    public void option7(){
+    public void option7()  {
 
+        //choose from the loggedIn teacher's courses
         System.out.println();
-        for(Course course: controller.getAllCourses()){
-            System.out.println(course);
+        try {
+            for (Course course : controller.findOneTeacher(loggedTeacherId).getCourses()) {
+                System.out.println(course);
+            }
+        }catch(NullException e){
+            System.out.println(e.getMessage());
         }
 
-        Course foundCourse=this.validateCourseInput();
-        int new_credits=0;
-        boolean okCredits=true;
+        Course foundCourse = this.validateCourseInput();
+        int new_credits = 0;
+        boolean okCredits = true;
         do {
             System.out.println("\nEnter the new credits number:");
             //verify input to be an int number
             try {
                 new_credits = in.nextInt();
-            }catch(InputMismatchException e){
+            } catch (InputMismatchException e) {
                 System.out.println("Wrong input number!");
-                okCredits=false;
+                okCredits = false;
                 in.reset();
                 in.next();
             }
             //credits can be a positive number only
-            if(new_credits<0)
-                okCredits=false;
+            if (new_credits < 0)
+                okCredits = false;
 
-        }while(!okCredits);
+        } while (!okCredits);
 
         //updates the course
         foundCourse.setCredits(new_credits);
         try {
             controller.modifyCredits(foundCourse);
-        }catch (NullException e){
+        } catch (IOException | NullException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     /**
-     * Delete a course from a given teacher,
-     * User sends input the teacher id and the course id,
+     * Delete a course from the logged in Teacher,
+     * teacher enters the course id,
      * Input is validated,
      * and the course is deleted from the teacher, from the course repo and from the students
      */
-    public void option8(){
-
-        System.out.println();
-        for(Teacher t: controller.getAllTeachers()){
-            System.out.println(t);
+    public void option8() {
+        //the logged In teacher
+        Teacher givenTeacher=null;
+        try {
+            givenTeacher = this.controller.findOneTeacher(this.loggedTeacherId);
+        }catch(NullException e){
+            System.out.println(e.getMessage());
         }
-
-        //Choosing an idTeacher
-        Teacher givenTeacher=this.validateTeacherInput();
-
 
         //Print all courses from teachers
         List<Course> courseList = givenTeacher.getCourses();
-        for(Course c : courseList){
+        for (Course c : courseList) {
             System.out.println(c.getCourseId() + "  " + c.getName());
         }
 
         //Choose course id
-        Course choosenCourse=this.validateCourseInput();
+        Course choosenCourse = this.validateCourseInput();
 
         try {
             if (controller.deleteCourseFromTeacher(givenTeacher, choosenCourse)) {
                 System.out.println("Course was deleted from teacher " + givenTeacher.getFirstName());
             }
-        }catch(NullException | InputException e) {
+        } catch (IOException|NullException | InputException e) {
             System.out.println(e.getMessage());
         }
         System.out.println();
@@ -380,9 +367,9 @@ public class ConsoleView {
     /**
      * shows the list of courses sorted ascending by credits number
      */
-    public void option9(){
+    public void option9() {
         System.out.println();
-        for(Course course: controller.sortCourses()){
+        for (Course course : controller.sortCourses()) {
             System.out.println(course);
         }
     }
@@ -390,48 +377,141 @@ public class ConsoleView {
     /**
      * shows the list of courses filtered by having more than 10 credits
      */
-    public void option10(){
+    public void option10() {
         System.out.println();
-        for(Course course: controller.filterCourses()){
+        for (Course course : controller.filterCourses()) {
             System.out.println(course);
         }
     }
 
-
     /**
-     * shows the options of the menu
+     * shows the options of the Main Menu
      */
-    public void printMenu() {
-        System.out.println("---------STUDENTS---------");
-        System.out.println("1. Enroll a student to a course");
-        System.out.println("2. Show students enrolled to a given course");
-        System.out.println("3. Sort students by name");
-        System.out.println("4. Filter students by maximal credits number (30)");
-        System.out.println("---------COURSES---------");
-        System.out.println("5. Show available courses and the number of places");
-        System.out.println("6. Add a new course");
-        System.out.println("7. Update a course credits number");
-        System.out.println("8. Delete a certain course");
-        System.out.println("9. Sort courses by number credits");
-        System.out.println("10. Filter courses by > 10 credits");
+    public void printStartMenu() {
+        System.out.println("---------LOG IN---------");
+        System.out.println("1. Student Menu");
+        System.out.println("2. Teacher Menu");
         System.out.println("0. Exit.");
     }
 
     /**
-     * The Menu gets user input the number of the option,
-     * calls the proper method for the chosen option,
-     * program ends when pressing 0
+     * Log In by Id for the Student, the entered id is validated if it exists in the Repo
+     * @return true if the studentId exists in the Repo, else false
      */
-    public void menu() {
+    public boolean logInStudent() {
+        System.out.println("---------LOG IN STUDENT---------");
+        System.out.println("Enter your ID: ");
+        long studId = in.nextLong();
+        try {
+            if (this.controller.findOneStudent(studId) == null) {
+                System.out.println("Incorrect ID!");
+                return false;
+            } else
+                this.loggedStudentId = studId;
+            return true;
+        }catch(NullException e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
 
+    /**
+     * Log In by Id for the Teacher, the entered id is validated if it exists in the Repo
+     * @return true if the teacherId exists in the Repo, else false
+     */
+    public boolean logInTeacher(){
+        System.out.println("---------LOG IN TEACHER---------");
+        System.out.println("Enter your ID: ");
+        long teacherId = in.nextLong();
+        try {
+            if (this.controller.findOneStudent(teacherId) == null) {
+                System.out.println("Incorrect ID!");
+                return false;
+            } else
+                this.loggedTeacherId = teacherId;
+            return true;
+        }catch(NullException e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+
+    }
+
+    /**
+     * Show Menu for the logged In Student, showing details about his credits and enrolled courses,
+     * showing possible actions
+     */
+    public void printStudentMenu(){
+        System.out.println("---------STUDENT MENU---------");
+        try {
+            Student loggedInStudent = this.controller.findOneStudent(loggedStudentId);
+            System.out.println("Welcome, "+ loggedInStudent.getFirstName()+" "+ loggedInStudent.getLastName());
+            System.out.println("Your status: ");
+            System.out.println("Credits: "+ loggedInStudent.getTotalCredits());
+            System.out.println("Enrolled courses: ");
+            for(Course course: loggedInStudent.getEnrolledCourses())
+                System.out.println(course);
+            System.out.println();
+            System.out.println("1. Enroll to a course");
+            System.out.println("2. Show available courses and the number of places");
+            System.out.println("3. Sort courses by number credits");
+            System.out.println("4. Filter courses by > 10 credits");
+            System.out.println("0. Exit.");
+        }catch(NullException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    /**
+     * Show Menu for the logged In Teacher, showing details about his teaching courses,
+     * showing possible actions
+     */
+    public void printTeacherMenu(){
+        System.out.println("---------TEACHER MENU---------");
+        try {
+
+            Teacher loggedInTeacher = this.controller.findOneTeacher(loggedTeacherId);
+            System.out.println("Welcome, " + loggedInTeacher.getFirstName() + " " + loggedInTeacher.getLastName());
+            System.out.println("Your status: ");
+            System.out.println("Teaching courses: ");
+            for (Course course : loggedInTeacher.getCourses())
+                System.out.println(course);
+
+            System.out.println("---------STUDENTS---------");
+            System.out.println("1. Enroll a student to a course");
+            System.out.println("2. Show students enrolled to a given course");
+            System.out.println("3. Sort students by name");
+            System.out.println("4. Filter students by maximal credits number (30)");
+            System.out.println("---------COURSES---------");
+            System.out.println("5. Show available courses and the number of places");
+            System.out.println("6. Add a new course");
+            System.out.println("7. Update a course credits number");
+            System.out.println("8. Delete a certain course");
+            System.out.println("9. Sort courses by number credits");
+            System.out.println("10. Filter courses by > 10 credits");
+            System.out.println("0. Exit.");
+        }catch(NullException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    /**
+     * Teacher Menu with actions:
+     * enrolling a student to a course, showing students enrolled to a course,
+     * sorting students by name, filtering student by having maximum total credits number,
+     * showing available courses, adding a new course, updating credits to a course,
+     * deleting a course, sorting courses by credits number,
+     * filtering courses by having more than 10 credits, pressing 0 for Exit
+     */
+    public void teacherMenu(){
         boolean stay = true;
-        int key=0;
+        int key = 0;
 
-        while(stay){
+        while (stay) {
             //validating input (has to be an int number between 0 and 10)
             boolean option;
             do {
-                printMenu();
+                printTeacherMenu();
                 option = true;
                 try {
                     System.out.print("Enter option: ");
@@ -442,13 +522,20 @@ public class ConsoleView {
                     in.reset();
                     in.next();
                 }
-            }while(!option);
+            } while (!option);
 
             //each option has its own method
-            switch (key){
+            switch (key) {
                 //Exit, program ends
                 case 0:
+                    try {
+                        this.controller.writeEnrollment();
+                        this.controller.saveExit();
+                    }catch(IOException e){
+                        System.out.println(e.getMessage());
+                    }
                     System.out.println("Goodbye!");
+
                     stay = false;
                     break;
 
@@ -484,7 +571,7 @@ public class ConsoleView {
 
                 // Update a course with a new credits number
                 case 7:
-                   this.option7();
+                    this.option7();
                     break;
 
                 // Delete a given course
@@ -503,6 +590,120 @@ public class ConsoleView {
                     break;
             }
         }
+    }
 
+    /**
+     * Student Menu with actions:
+     * enrolling to a course, showing available courses, sorting courses by credits number,
+     * filtering courses by having more than 10 credits, pressing 0 for Exit
+     */
+    public void studentMenu(){
+        boolean stay = true;
+        int key = 0;
+
+        while (stay) {
+            //validating input (has to be an int number between 0 and 4)
+            boolean option;
+            do {
+                printStudentMenu();
+                option = true;
+                try {
+                    System.out.print("Enter option: ");
+                    key = in.nextInt();
+                } catch (InputMismatchException e) {
+                    System.out.println("Wrong number! Try again...");
+                    option = false;
+                    in.reset();
+                    in.next();
+                }
+            } while (!option);
+
+            //each option has its own method
+            switch (key) {
+                //Exit, program ends
+                case 0:
+                    try {
+                        this.controller.writeEnrollment();
+                        this.controller.saveExit();
+                    }catch(IOException e){
+                        System.out.println(e.getMessage());
+                    }
+                    System.out.println("Goodbye!");
+
+                    stay = false;
+                    break;
+
+                //Enroll a student to a course
+                case 1:
+                    this.option1();
+                    break;
+                //Show available courses and the number of places
+                case 2:
+                    this.option5();
+                    break;
+                //Sort courses by number credits
+                case 3:
+                    this.option9();
+                    break;
+
+                //Filter courses by > 10 credits
+                case 4:
+                    this.option10();
+                    break;
+            }
+        }
+    }
+
+    /**
+     * The (Start) Main Menu gets user input choosing the user type (student or teacher),
+     * calls the proper Menu for the chosen option,
+     * program ends when pressing 0
+     */
+    public void menu() {
+
+        boolean stay = true;
+        int key = 0;
+
+        while (stay) {
+            //validating input (has to be an int number between 0 and 10)
+            boolean option;
+            do {
+                printStartMenu();
+                option = true;
+                try {
+                    System.out.print("Enter option: ");
+                    key = in.nextInt();
+                } catch (InputMismatchException e) {
+                    System.out.println("Wrong number! Try again...");
+                    option = false;
+                    in.reset();
+                    in.next();
+                }
+            } while (!option);
+
+            //each option has its own method
+            switch (key) {
+                //Exit, program ends
+                case 0:
+                    System.out.println("Goodbye!");
+
+                    stay = false;
+                    break;
+
+                //LogIn in Student Menu
+                case 1:
+                    if(logInStudent())
+                        this.studentMenu();
+                    this.loggedStudentId=null;
+                    break;
+
+                //LogIn in Teacher Menu
+                case 2:
+                    if(logInTeacher())
+                        this.teacherMenu();
+                    this.loggedTeacherId=null;
+                    break;
+            }
+        }
     }
 }

@@ -1,6 +1,8 @@
 package com.company.Model;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * class Course
@@ -8,26 +10,57 @@ import java.util.List;
  * enrolled students, number of credits
  *
  * @version
- *          30.10.2021
+ *          13.11.2021
  *
  * @author
  *          Denisa Dragota
  */
-public class Course {
+public class Course implements Serializable{
     private String name;
     private long courseId; //unique identifier of an object
-    private Person teacher;
+    private Teacher teacher;
     private int maxEnrollment;
-    private List<Student> studentsEnrolled;
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private transient List<Student> studentsEnrolled;
     private int credits;
 
-    public Course(long courseId,String name, Person teacher, int maxEnrollment,  int credits) {
+    public Course(long courseId,String name, Teacher teacher, int maxEnrollment, int credits) {
         this.courseId=courseId;
         this.name = name;
         this.teacher = teacher;
         this.maxEnrollment = maxEnrollment;
-        this.studentsEnrolled = new ArrayList<>();
+        this.studentsEnrolled = new ArrayList<>(){};
         this.credits = credits;
+    }
+
+    public Course(){};
+
+    /**
+     * writes serialized Course objects to the file
+     * custom serialization for the attribute (students enrolled list) as an empty list,
+     * in order to avoid circular references
+     * @param oos the ObjectOutputStream object
+     * @throws IOException if there occurs an error with the ObjectOutputStream
+     */
+    @Serial
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+        oos.writeObject(new ArrayList<>(){});
+
+    }
+
+    /**
+     * reads serialized objects from the file,
+     * reads the custom serialized transient attribute (enrolled students list)
+     * @param ois is the ObjectInputStream object
+     * @throws ClassNotFoundException
+     * @throws IOException if there occurs an error with the ObjectInputStream
+     */
+    @Serial
+    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException{
+        ois.defaultReadObject();
+        this.studentsEnrolled=(List<Student>)ois.readObject();
     }
 
     public String getName() {
@@ -38,11 +71,11 @@ public class Course {
         this.name = name;
     }
 
-    public Person getTeacher() {
+    public Teacher getTeacher() {
         return teacher;
     }
 
-    public void setTeacher(Person teacher) {
+    public void setTeacher(Teacher teacher) {
         this.teacher = teacher;
     }
 
@@ -86,10 +119,17 @@ public class Course {
      */
     public boolean compareTo(Course other) {
         /* comparing based on id */
-        if(this.courseId ==  other.getCourseId())
-            return true;
-        return false;
+        return this.courseId == other.getCourseId();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Course course = (Course) o;
+        return courseId == course.courseId ;
+    }
+
 
     @Override
     public String toString() {

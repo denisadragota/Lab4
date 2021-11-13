@@ -1,17 +1,14 @@
 package com.company.Repository;
 
 import com.company.Exceptions.NullException;
-import com.company.Model.Course;
-import com.company.Model.Student;
 import com.company.Model.Teacher;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * test TeacherRepository class
  *
  * @version
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
@@ -34,18 +31,16 @@ class TeacherRepositoryTest {
     /**
      * create instances for testing before each test method
      */
+
     @BeforeEach
-    void createInstances(){
+    void createInstances() throws IOException {
         /*creating instances*/
+        /* the first 2 teachers exist in the file */
         teacher1 = new Teacher(1,"Catalin","Rusu");
         teacher2 = new Teacher(2,"Diana", "Cristea");
-        teacher3 = new Teacher(3, "Cristian", "Sacarea");
+        teacher3 = new Teacher(3, "Christian", "Sacarea");
 
-        /* set a teacher list to the repo*/
-        List<Teacher> teachers = new ArrayList<>();
-        teachers.add(teacher1);
-        teachers.add(teacher2);
-        teacher_repo=new TeacherRepository(teachers);
+        teacher_repo=new TeacherRepository("teachers.ser");
     }
 
     /**
@@ -58,8 +53,9 @@ class TeacherRepositoryTest {
         teachers[0]=teacher1;
         teachers[1]=teacher2;
 
-        /* comparing the arrays */
-        assertArrayEquals(teachers,((Collection<?>)teacher_repo.findAll()).toArray());
+        for(Teacher t:teachers){
+            assertTrue(teacher_repo.findAll().contains(t));
+        }
     }
 
     /**
@@ -78,26 +74,37 @@ class TeacherRepositoryTest {
      * test save() method
      */
     @Test
-    void save() throws NullException{
+    void save() throws NullException, IOException {
         /* save teacher_repo size at the beginning */
         int sizeBefore=((Collection<?>)teacher_repo.findAll()).size();
 
         /* add an already existing instance in the repo */
         /* will not be added, size remains the same */
-        assertEquals(teacher1, teacher_repo.save(teacher1));
+        try {
+            assertEquals(teacher1, teacher_repo.save(teacher1));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
         assertEquals(sizeBefore, ((Collection<?>) teacher_repo.findAll()).size());
 
         /* add a new instance to the repo */
         /* size of the repo increments */
-        assertNull(teacher_repo.save(teacher3));
+        try {
+            assertNull(teacher_repo.save(teacher3));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
         assertEquals(sizeBefore + 1, ((Collection<?>) teacher_repo.findAll()).size());
+
+        //undo changes (the file was updated)
+        this.teacher_repo.delete(teacher3.getTeacherId());
     }
 
     /**
      * test update() method
      */
     @Test
-    void update() throws NullException{
+    void update() throws NullException, IOException {
         /* try to update a teacher that does not exist in the repo */
         teacher3.setLastName(teacher3.getLastName().substring(0, 3));
         assertEquals(teacher3, teacher_repo.update(teacher3));
@@ -109,13 +116,18 @@ class TeacherRepositoryTest {
 
         assertNull(teacher_repo.update(teacher1));
         assertEquals(nameAfter, teacher_repo.findOne(teacher1.getTeacherId()).getLastName());
+
+        //undo changes (the file was updated)
+        teacher1.setLastName(nameBefore);
+        teacher_repo.update(teacher1);
+
     }
 
     /**
      * test delete() method
      */
     @Test
-    void delete() throws NullException{
+    void delete() throws NullException, IOException {
         /* try to delete a non-existing teacherId in the repo */
         assertNull(teacher_repo.delete(teacher3.getTeacherId()));
 
@@ -125,5 +137,8 @@ class TeacherRepositoryTest {
 
         /* the teacherId does not exist in the repo anymore */
         assertNull(teacher_repo.findOne(teacher1.getTeacherId()));
+
+        //undo changes (the file was updated)
+        this.teacher_repo.save(teacher1);
     }
 }

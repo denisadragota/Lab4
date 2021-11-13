@@ -1,16 +1,12 @@
 package com.company.Repository;
 
-import com.company.Exceptions.InputException;
 import com.company.Exceptions.NullException;
-import com.company.Model.Course;
 import com.company.Model.Student;
-import com.company.Model.Teacher;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * StudentRepositoryTest class
  * testing StudentRepository class
  * @version
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
@@ -31,25 +27,25 @@ class StudentRepositoryTest {
     private Student student2;
     private Student student3;
     private Student student4;
+    private Student student5;
     private StudentRepository stud_repo;
 
     /**
      * create instances for testing before each test method
      */
     @BeforeEach
-    void createInstances(){
+    void createInstances() throws IOException {
 
-        /*creating instances*/
+        /*creating instances to test*/
+        /* the first 4 students exist in the file */
         student1 = new Student(1,"Denisa","Dragota");
         student2 = new Student(2,"Mihnea", "Aleman");
         student3 = new Student(3,"Raul","Barbat");
         student4 = new Student(4,"Evelin","Bohm");
+        student5 = new Student(5, "Maria", "Morar");
 
-        /* set a student list to the repo*/
-        List<Student> students = new ArrayList<>();
-        students.add(student1);
-        students.add(student2);
-        stud_repo=new StudentRepository(students);
+
+        stud_repo=new StudentRepository("students.ser");
     }
 
     /**
@@ -59,12 +55,16 @@ class StudentRepositoryTest {
     void findAll(){
 
         /*creating the expected result list */
-        Student[] students = new Student[2];
+        Student[] students = new Student[4];
         students[0]=student1;
         students[1]=student2;
+        students[2]=student3;
+        students[3]=student4;
 
-        /* comparing the arrays */
-        assertArrayEquals(students,((Collection<?>)stud_repo.findAll()).toArray());
+        for(Student stud : students){
+            assertTrue(stud_repo.findAll().contains(stud));
+        }
+
     }
 
     /**
@@ -87,52 +87,70 @@ class StudentRepositoryTest {
      * test save() method
      */
     @Test
-    void save() throws NullException{
+    void save() throws NullException, IOException {
 
         /* save stud_repo size at the beginning */
         int sizeBefore=((Collection<?>)stud_repo.findAll()).size();
 
         /* add an already existing instance in the repo */
         /* will not be added, size remains the same */
-        assertEquals(student1, stud_repo.save(student1));
+        try {
+            assertEquals(student1, stud_repo.save(student1));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
         assertEquals(sizeBefore, ((Collection<?>) stud_repo.findAll()).size());
 
         /* add a new instance to the repo */
         /* size of the repo increments */
-        assertNull(stud_repo.save(student3));
+        try {
+            assertNull(stud_repo.save(student5));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
         assertEquals(sizeBefore + 1, ((Collection<?>) stud_repo.findAll()).size());
+
+        //undo changes (the file was updated)
+        this.stud_repo.delete(student5.getStudentId());
     }
 
     /**
      * test update() method
      */
     @Test
-    void update() throws NullException{
+    void update() throws NullException, IOException {
 
         /* try to update a student that does not exist in the repo */
-        student4.setTotalCredits(30);
-        assertEquals(student4, stud_repo.update(student4));
+        student5.setTotalCredits(30);
+        assertEquals(student5, stud_repo.update(student5));
 
         /* modify the TotalCredits attribute from existing student1 in repo */
         assertEquals(0, stud_repo.findOne(student1.getStudentId()).getTotalCredits());
         student1.setTotalCredits(30);
         assertNull(stud_repo.update(student1));
         assertEquals(30, stud_repo.findOne(student1.getStudentId()).getTotalCredits());
+
+        // undo changes (the file was updated)
+        student1.setTotalCredits(0);
+        stud_repo.update(student1);
     }
 
     /**
      * test delete() method
      */
     @Test
-    void delete() throws NullException{
+    void delete() throws NullException, IOException{
 
         /* try to delete a non-existing studentId in the repo */
-        assertNull(stud_repo.delete(student4.getStudentId()));
+        assertNull(stud_repo.delete(student5.getStudentId()));
 
         /* delete a student from the repo */
         assertEquals(student1, stud_repo.delete(student1.getStudentId()));
 
         /* the studentId does not exist in the repo anymore */
         assertNull(stud_repo.findOne(student1.getStudentId()));
+
+        //undo changes (the file was updated)
+        stud_repo.save(student1);
     }
 }

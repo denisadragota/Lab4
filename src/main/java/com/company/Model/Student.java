@@ -1,5 +1,6 @@
 package com.company.Model;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -10,14 +11,16 @@ import java.util.Objects;
  * total credits number and enrolled courses
  *
  * @version
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
-public class Student extends Person{
+public class Student extends Person implements Serializable{
     private long studentId; //unique identifier of an object
-    private int totalCredits;
-    private List<Course> enrolledCourses;
+    private transient int totalCredits;
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private transient List<Course> enrolledCourses;
 
     public Student(long studentId,String firstName, String lastName) {
         this.studentId = studentId;
@@ -26,13 +29,41 @@ public class Student extends Person{
         this.firstName=firstName;
         this.lastName=lastName;
     }
+    public Student(){};
+
+    /**
+     *  writes serialized Student objects to the file
+     *  custom serialization for the attribute (courses enrolled list) as an empty list
+     * in order to avoid circular references
+     * @param oos is the ObjectOutputStream object
+     * @throws IOException if there occurs an error with the ObjectOutputStream object
+     */
+    @Serial
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+        oos.writeObject(new ArrayList<>(){});
+    }
+
+    /**
+     * reads serialized objects from the file,
+     * reads the custom serialized transient attribute (enrolled courses list)
+     * @param ois is an ObjectInputStream object
+     * @throws ClassNotFoundException
+     * @throws IOException if there occurs an error with the ObjectInputStream
+     */
+    @Serial
+    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException{
+        ois.defaultReadObject();
+        this.enrolledCourses=(List<Course>)ois.readObject();
+        this.totalCredits=0;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Student student = (Student) o;
-        return studentId == student.studentId && totalCredits == student.totalCredits && Objects.equals(enrolledCourses, student.enrolledCourses);
+        return studentId == student.studentId ;
     }
 
 
@@ -69,9 +100,7 @@ public class Student extends Person{
     public boolean compareTo(Student other) {
 
         /* comparing id */
-        if(this.studentId ==  other.getStudentId())
-            return true;
-        return false;
+        return this.studentId == other.getStudentId();
     }
 
     @Override
@@ -80,7 +109,7 @@ public class Student extends Person{
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", studentId=" + studentId +
-                ", totalCredits=" + totalCredits +
+                ", totalCredits=" + totalCredits+
                 '}';
     }
 }

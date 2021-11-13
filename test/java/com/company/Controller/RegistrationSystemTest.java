@@ -5,14 +5,17 @@ import com.company.Exceptions.NullException;
 import com.company.Model.Course;
 import com.company.Model.Student;
 import com.company.Model.Teacher;
+
 import com.company.Repository.CourseRepository;
 import com.company.Repository.StudentRepository;
 import com.company.Repository.TeacherRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +40,12 @@ class RegistrationSystemTest {
     private Course course3;
     private Course course4;
     private Course course5;
-    private Course course6;
 
     private Student student1;
     private Student student2;
     private Student student3;
     private Student student4;
     private Student student5;
-    private Student student6;
 
     private RegistrationSystem regSystem;
 
@@ -52,7 +53,7 @@ class RegistrationSystemTest {
      * create instances for testing before each test method
      */
     @BeforeEach
-    void createInstances() {
+    void createInstances() throws IOException, InputException, NullException {
 
         /* creating Teacher instances */
         teacher1 = new Teacher(1, "Catalin", "Rusu");
@@ -60,37 +61,22 @@ class RegistrationSystemTest {
         teacher3 = new Teacher(3, "Cristian", "Sacarea");
 
         /* creating Course instances */
-        course1 = new Course(1, "OOP", teacher1, 20, 6);
+        course1 = new Course(1, "OOP", teacher1, 20, 5);
         course2 = new Course(2, "SDA", teacher2, 30, 5);
-        course3 = new Course(3, "NewOptional", teacher2, 3, 20);
-        course4 = new Course(4, "MAP", teacher1, 20, 5);
-        course5 = new Course(5, "Optional2", teacher1, 20, 5);
-        course6 = new Course(6,"Logica",teacher3,10,10);
-
+        course3 = new Course(3, "MAP", teacher1, 3, 20);
+        course4 = new Course(4, "NewOptional", teacher2, 3, 20);
+        course5 = new Course(5,"Logik", teacher3, 10, 7);
 
         /* adding courses to each teacher*/
         List<Course> coursesTeacher1=new ArrayList<Course>();
         coursesTeacher1.add(course1);
+        coursesTeacher1.add(course3);
         teacher1.setCourses(coursesTeacher1);
 
         List<Course> coursesTeacher2=new ArrayList<Course>();
         coursesTeacher2.add(course2);
-        coursesTeacher2.add(course3);
+        coursesTeacher2.add(course4);
         teacher2.setCourses(coursesTeacher2);
-
-        /* creating a teacher Repo */
-        List<Teacher> teachers = new ArrayList<>();
-        teachers.add(teacher1);
-        teachers.add(teacher2);
-        TeacherRepository teacher_repo = new TeacherRepository(teachers);
-
-        /* creating a course Repo */
-        List<Course> courses = new ArrayList<>();
-        courses.add(course1);
-        courses.add(course2);
-        courses.add(course3);
-        courses.add(course5);
-        CourseRepository course_repo = new CourseRepository(courses);
 
         /* creating Student instances */
         student1 = new Student(1, "Denisa", "Dragota");
@@ -98,20 +84,14 @@ class RegistrationSystemTest {
         student3 = new Student(3, "Raul", "Barbat");
         student4 = new Student(4, "Evelin", "Bohm");
         student5 = new Student(5, "Maria", "Morar");
-        student6 = new Student(6, "Iarina", "Demian");
 
-        /* creating a Student Repo */
-        List<Student> students = new ArrayList<>();
-        students.add(student1);
-        students.add(student2);
-        students.add(student3);
-        students.add(student4);
-        students.add(student5);
+        StudentRepository student_repo = new StudentRepository("students.ser");
+        TeacherRepository teacher_repo = new TeacherRepository("teachers.ser");
+        CourseRepository course_repo = new CourseRepository("courses.ser");
 
-        StudentRepository student_repo = new StudentRepository(students);
 
         /* creating a RegistrationSystem instance */
-        regSystem = new RegistrationSystem(student_repo, teacher_repo, course_repo);
+        regSystem = new RegistrationSystem(student_repo, teacher_repo, course_repo, "enrollment.txt");
     }
 
     /**
@@ -127,7 +107,6 @@ class RegistrationSystemTest {
         expectedStudentsList.add(student3);
         expectedStudentsList.add(student4);
         expectedStudentsList.add(student1);
-        expectedStudentsList.add(student5);
         assertArrayEquals(expectedStudentsList.toArray(),sortedStudents.toArray());
     }
 
@@ -139,9 +118,10 @@ class RegistrationSystemTest {
         List<Course> sortedCourses=this.regSystem.sortCourses();
         /* building the expected result */
         List<Course> expectedCoursesList=new ArrayList<>();
-        expectedCoursesList.add(course2);
         expectedCoursesList.add(course1);
+        expectedCoursesList.add(course2);
         expectedCoursesList.add(course3);
+        expectedCoursesList.add(course4);
         assertArrayEquals(expectedCoursesList.toArray(),sortedCourses.toArray());
     }
 
@@ -151,17 +131,25 @@ class RegistrationSystemTest {
      * or if student can not enroll to that given course
      */
     @Test
-    void filterStudents()throws InputException, NullException {
+    void filterStudents()throws InputException, NullException, IOException {
         /*enroll students to courses */
+        regSystem.register(course1,student1);
         regSystem.register(course2,student1);
         regSystem.register(course3,student1);
-        regSystem.register(course5,student1);
 
         List<Student> filteredStudents=this.regSystem.filterStudents();
         /* building the expected result */
         List<Student> expectedStudentsList=new ArrayList<>();
         expectedStudentsList.add(student1);
         assertArrayEquals(expectedStudentsList.toArray(),filteredStudents.toArray());
+
+        //undo changes (the file was updated)
+        course1.setStudentsEnrolled(new ArrayList<>(){});
+        course2.setStudentsEnrolled(new ArrayList<>(){});
+        course3.setStudentsEnrolled(new ArrayList<>(){});
+        student1.setEnrolledCourses(new ArrayList<>(){});
+
+        this.regSystem.writeEnrollment();
     }
 
     /**
@@ -173,20 +161,24 @@ class RegistrationSystemTest {
         List<Course> filteredCourses=this.regSystem.filterCourses();
         /* building the expected result */
         List<Course> expectedCoursesList=new ArrayList<>();
+        System.out.println(filteredCourses);
         expectedCoursesList.add(course3);
-        assertArrayEquals(expectedCoursesList.toArray(),filteredCourses.toArray());
+        expectedCoursesList.add(course4);
+        for(Course c: expectedCoursesList)
+            assertTrue(filteredCourses.contains(c));
+
     }
 
     /**
      * test register() method
      */
     @Test
-    void register() throws InputException, NullException {
+    void register() throws InputException, NullException, IOException {
         /* 1. register a student to a non-existing course in the Course Repo */
-        Assertions.assertThrows(InputException.class,()->regSystem.register(course4, student1));
+        Assertions.assertThrows(InputException.class,()->regSystem.register(course5, student1));
 
         /* 2. register a non-existing student in the Student Repo to a Course */
-        Assertions.assertThrows(InputException.class,()->regSystem.register(course1, student6));
+        Assertions.assertThrows(InputException.class,()->regSystem.register(course1, student5));
 
         /* 3. register 3 students to a course */
         regSystem.register(course3, student1);
@@ -198,7 +190,7 @@ class RegistrationSystemTest {
         assertEquals(3, regSystem.findOneCourse(course3.getCourseId()).getStudentsEnrolled().size());
         assertEquals(1, regSystem.findOneStudent(student2.getStudentId()).getEnrolledCourses().size());
         assertEquals(20, regSystem.findOneStudent(student2.getStudentId()).getTotalCredits());
-        assertEquals(26, regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
+        assertEquals(25, regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
 
         /* 4. trying to enroll a student to a course with no free places */
         /* course3 has 3 total places and 3 students have been already enrolled */
@@ -206,10 +198,22 @@ class RegistrationSystemTest {
 
         /* trying to enroll a student to a course that exceeds his credit limit (30) */
         /* student1 is already enrolled to 2 courses with 20 + 6 credits */
-        Assertions.assertThrows(InputException.class,()->regSystem.register(course2, student1));
+        Assertions.assertThrows(InputException.class,()->regSystem.register(course4, student1));
 
         /* trying to enroll a already enrolled student to the same course again */
         Assertions.assertThrows(InputException.class,()->regSystem.register(course1, student1));
+
+        //undo changes (the file was updated)
+        student1.setEnrolledCourses(new ArrayList<>(){});
+        student1.setTotalCredits(0);
+        student2.setEnrolledCourses(new ArrayList<>(){});
+        student2.setTotalCredits(0);
+        student3.setEnrolledCourses(new ArrayList<>(){});
+        student3.setTotalCredits(0);
+
+        course1.setStudentsEnrolled(new ArrayList<>(){});
+        course3.setStudentsEnrolled(new ArrayList<>(){});
+        this.regSystem.writeEnrollment();
 
     }
 
@@ -217,7 +221,7 @@ class RegistrationSystemTest {
      * test retrieveCoursesWithFreePlaces() method
      */
     @Test
-    void retrieveCoursesWithFreePlaces() throws InputException, NullException {
+    void retrieveCoursesWithFreePlaces() throws InputException, NullException, IOException {
         /*enroll students to courses */
         /* course3 will have no places free */
 
@@ -227,18 +231,34 @@ class RegistrationSystemTest {
         regSystem.register(course1, student1);
 
         /*creating the expected result list */
-        Course[] freeplacesCourses = new Course[2];
-        freeplacesCourses[0] = course2;
-        freeplacesCourses[1] = course1;
+        Course[] freeplacesCourses = new Course[3];
+        freeplacesCourses[0] = course1;
+        freeplacesCourses[1] = course2;
+        freeplacesCourses[2] = course4;
 
-        assertArrayEquals(freeplacesCourses, regSystem.retrieveCoursesWithFreePlaces().toArray());
+        for(Course c:freeplacesCourses){
+            assertTrue(regSystem.retrieveCoursesWithFreePlaces().contains(c));
+        }
+
+        //undo changes (the file was updated)
+        student1.setEnrolledCourses(new ArrayList<>(){});
+        student1.setTotalCredits(0);
+        student2.setEnrolledCourses(new ArrayList<>(){});
+        student2.setTotalCredits(0);
+        student3.setEnrolledCourses(new ArrayList<>(){});
+        student3.setTotalCredits(0);
+
+        course1.setStudentsEnrolled(new ArrayList<>(){});
+        course3.setStudentsEnrolled(new ArrayList<>(){});
+
+        this.regSystem.writeEnrollment();
     }
 
     /**
      * test retrieveStudentsEnrolledForACourse() method
      */
     @Test
-    void retrieveStudentsEnrolledForACourse() throws InputException,NullException {
+    void retrieveStudentsEnrolledForACourse() throws InputException,NullException, IOException {
         /* register 3 students to course3 */
 
         regSystem.register(course3, student1);
@@ -251,39 +271,39 @@ class RegistrationSystemTest {
         studentsEnrolled[1] = student2;
         studentsEnrolled[2] = student3;
 
-        assertArrayEquals(studentsEnrolled, regSystem.retrieveStudentsEnrolledForACourse(course3).toArray());
+        for(Student stud:studentsEnrolled){
+            assertTrue(regSystem.retrieveStudentsEnrolledForACourse(course3).contains(stud));
+        }
 
         /* null for a non-existing course in the Course Repo */
-        assertNull(regSystem.retrieveStudentsEnrolledForACourse(course4));
+        assertNull(regSystem.retrieveStudentsEnrolledForACourse(course5));
 
         /* empty list for a course with no students enrolled */
         assertEquals(new ArrayList<Student>(), regSystem.retrieveStudentsEnrolledForACourse(course2));
+
+        //undo changes (the file was updated)
+        student1.setEnrolledCourses(new ArrayList<>(){});
+        student1.setTotalCredits(0);
+        student2.setEnrolledCourses(new ArrayList<>(){});
+        student2.setTotalCredits(0);
+        student3.setEnrolledCourses(new ArrayList<>(){});
+        student3.setTotalCredits(0);
+
+        course3.setStudentsEnrolled(new ArrayList<>(){});
+        this.regSystem.writeEnrollment();
     }
 
-    /**
-     * test getAllCourses() method
-     */
-    @Test
-    void getAllCourses() {
-        /*creating the expected result list */
-        Course[] courses = new Course[3];
-        courses[0] = course1;
-        courses[1] = course2;
-        courses[2] = course3;
-
-        assertArrayEquals(courses, regSystem.getAllCourses().toArray());
-    }
 
     /**
      * test modifyCredits() method
      */
     @Test
-    void modifyCredits() throws InputException,NullException{
+    void modifyCredits() throws InputException,NullException, IOException{
         /* enrolling a student to a course */
 
         regSystem.register(course1,student1);
 
-        assertEquals(6, student1.getTotalCredits());
+        assertEquals(5, student1.getTotalCredits());
 
         /* modifying the credits of a course */
 
@@ -293,38 +313,58 @@ class RegistrationSystemTest {
         regSystem.modifyCredits(course1);
 
         /* assert update of students credits */
-        assertEquals(8, student1.getTotalCredits());
+        assertEquals(7, student1.getTotalCredits());
+
+        //undo changes (the file was updated)
+        student1.setEnrolledCourses(new ArrayList<>(){});
+        student1.setTotalCredits(0);
+
+        course1.setStudentsEnrolled(new ArrayList<>(){});
+        course1.setCredits(5);
+        this.regSystem.writeEnrollment();
+
     }
 
     /**
      * test deleteCourseFromTeacher() method
      */
     @Test
-    void deleteCourseFromTeacher() throws InputException,NullException {
+    void deleteCourseFromTeacher() throws InputException,NullException, IOException {
         /* enroll students to a course*/
 
-        regSystem.register(course3, student1);
-        regSystem.register(course3, student2);
-        regSystem.register(course3, student3);
+        this.regSystem.addCourse(course5);
+        regSystem.register(course5, student1);
+        regSystem.register(course5, student2);
+        regSystem.register(course5, student3);
 
         //number of courses of the teacher before deleting
-        int coursesBefore=regSystem.findOneTeacher(((Teacher)course3.getTeacher()).getTeacherId()).getCourses().size();
-        assertEquals(2,coursesBefore);
+        System.out.println(regSystem.findOneTeacher(((Teacher)course5.getTeacher()).getTeacherId()).getCourses());
+        int coursesBefore=regSystem.findOneTeacher(((Teacher)course5.getTeacher()).getTeacherId()).getCourses().size();
+        assertEquals(1,coursesBefore);
 
         //number credits of a student enrolled before deleting
-        assertEquals(20,regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
+        assertEquals(7,regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
 
         //delete Course
-        regSystem.deleteCourseFromTeacher(teacher2, course3);
+        regSystem.deleteCourseFromTeacher(teacher3, course5);
 
         //number of courses of the teacher before deleting
-        int coursesAfter=regSystem.findOneTeacher(((Teacher)course3.getTeacher()).getTeacherId()).getCourses().size();
+        int coursesAfter=regSystem.findOneTeacher(((Teacher)course5.getTeacher()).getTeacherId()).getCourses().size();
 
         //assert update of number courses
         assertEquals(coursesBefore-1,coursesAfter);
 
         //asserting the update of credits of the student after deleting the course
         assertEquals(0,regSystem.findOneStudent(student1.getStudentId()).getTotalCredits());
+
+        //undo changes (the file was updated)
+        student1.setEnrolledCourses(new ArrayList<>(){});
+        student1.setTotalCredits(0);
+        student2.setEnrolledCourses(new ArrayList<>(){});
+        student2.setTotalCredits(0);
+        student3.setEnrolledCourses(new ArrayList<>(){});
+        student3.setTotalCredits(0);
+        this.regSystem.writeEnrollment();
 
     }
 
@@ -333,29 +373,36 @@ class RegistrationSystemTest {
      * @throws NullException if course is null
      */
     @Test
-    void addCourse()throws NullException{
+    void addCourse() throws NullException, IOException, InputException {
         //Case1: adding a new course with an existing teacher in the repo
         //building the expected result list
         List<Course> expectedCourses = new ArrayList<>();
         expectedCourses.add(course1);
         expectedCourses.add(course2);
         expectedCourses.add(course3);
-        expectedCourses.add(course5);
         expectedCourses.add(course4);
+        expectedCourses.add(course5);
 
-        regSystem.addCourse(course4);
-        assertArrayEquals(expectedCourses.toArray(),regSystem.getAllCourses().toArray());
+        regSystem.addCourse(course5);
+        for(Course c:expectedCourses)
+        {
+            assertTrue(regSystem.getAllCourses().contains(c));
+        }
 
         //Case2: adding a new course with a new teacher in the repo
         //expected: to add the teacher in the repo
-        regSystem.addCourse(course6);
         List<Teacher> expectedTeachers = new ArrayList<>();
-        expectedTeachers.add(teacher2);
         expectedTeachers.add(teacher1);
+        expectedTeachers.add(teacher2);
         expectedTeachers.add(teacher3);
 
-        assertArrayEquals(expectedTeachers.toArray(),regSystem.getAllTeachers().toArray());
+        for(Teacher t:expectedTeachers){
+            assertTrue(regSystem.getAllTeachers().contains(t));
+        }
 
+        //undo changes (the file was updated)
+        regSystem.deleteCourseFromTeacher(teacher3,course5);
+        this.regSystem.writeEnrollment();
 
     }
 }
