@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * test RegistrationSystem class
  *
  * @version
- *          30.10.2021
+ *          13.11.2021
  * @author
  *          Denisa Dragota
  */
