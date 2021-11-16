@@ -79,7 +79,7 @@ public class ConsoleView {
         //repeats until input is a valid Student id
         do {
             validStudentId = true;
-            long stud_id = this.validateNumberInput("\nChoose id of the student you want to enroll");
+            long stud_id = this.validateNumberInput("\nChoose id of the student you want to enroll: ");
 
             try {
                 givenStudent = controller.findOneStudent(stud_id);
@@ -109,7 +109,7 @@ public class ConsoleView {
         do {
             validCourseId = true;
 
-            long course_id = this.validateNumberInput("\nChoose course id");
+            long course_id = this.validateNumberInput("\nChoose course id: ");
 
             try {
                 givenCourse = controller.findOneCourse(course_id);
@@ -245,10 +245,10 @@ public class ConsoleView {
 
         // add new teacher to the repo
         if (answear.equals("Y")) {
-            System.out.println("Enter First name of the teacher");
+            System.out.println("Enter First name of the teacher: ");
             String newTeacherFirstName = in.next();
 
-            System.out.println("Enter Last name of the teacher");
+            System.out.println("Enter Last name of the teacher: ");
             String newTeacherLastName = in.next();
 
             long newTeacherId = ((long) controller.getAllTeachers().size()) + 1;
@@ -266,10 +266,10 @@ public class ConsoleView {
         System.out.println("Enter name of the course");
         String newCourseName = in.next();
 
-        System.out.println("Enter credits number of the course");
+        System.out.println("Enter credits number of the course: ");
         int newCourseCredits = in.nextInt();
 
-        System.out.println("Enter maximum enrollment number of the course");
+        System.out.println("Enter maximum enrollment number of the course: ");
         int newCourseMaxEnrollment = in.nextInt();
 
         long newCourseId = ((long) controller.getAllCourses().size()) + 1;
@@ -304,7 +304,7 @@ public class ConsoleView {
         int new_credits = 0;
         boolean okCredits = true;
         do {
-            System.out.println("\nEnter the new credits number:");
+            System.out.println("\nEnter the new credits number: ");
             //verify input to be an int number
             try {
                 new_credits = in.nextInt();
