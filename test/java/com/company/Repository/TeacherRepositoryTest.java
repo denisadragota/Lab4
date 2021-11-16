@@ -16,10 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * TeacherRepositoryTest class
  * test TeacherRepository class
  *
- * @version
- *          13.11.2021
- * @author
- *          Denisa Dragota
+ * @author Denisa Dragota
+ * @version 13.11.2021
  */
 class TeacherRepositoryTest {
     private Teacher teacher1;
@@ -36,24 +34,24 @@ class TeacherRepositoryTest {
     void createInstances() throws IOException {
         /*creating instances*/
         /* the first 2 teachers exist in the file */
-        teacher1 = new Teacher(1,"Catalin","Rusu");
-        teacher2 = new Teacher(2,"Diana", "Cristea");
+        teacher1 = new Teacher(1, "Catalin", "Rusu");
+        teacher2 = new Teacher(2, "Diana", "Cristea");
         teacher3 = new Teacher(3, "Christian", "Sacarea");
 
-        teacher_repo=new TeacherRepository("teachers.ser");
+        teacher_repo = new TeacherRepository("teachers.ser");
     }
 
     /**
      * test findAll() method
      */
     @Test
-    void findAll(){
+    void findAll() {
         /*creating the expected result list */
         Teacher[] teachers = new Teacher[2];
-        teachers[0]=teacher1;
-        teachers[1]=teacher2;
+        teachers[0] = teacher1;
+        teachers[1] = teacher2;
 
-        for(Teacher t:teachers){
+        for (Teacher t : teachers) {
             assertTrue(teacher_repo.findAll().contains(t));
         }
     }
@@ -62,7 +60,7 @@ class TeacherRepositoryTest {
      * test findOne() method
      */
     @Test
-    void findOne() throws NullException{
+    void findOne() throws NullException {
         /* search for existing teacher id */
         assertEquals(teacher1, teacher_repo.findOne(1L));
 
@@ -76,7 +74,7 @@ class TeacherRepositoryTest {
     @Test
     void save() throws NullException, IOException {
         /* save teacher_repo size at the beginning */
-        int sizeBefore=((Collection<?>)teacher_repo.findAll()).size();
+        int sizeBefore = ((Collection<?>) teacher_repo.findAll()).size();
 
         /* add an already existing instance in the repo */
         /* will not be added, size remains the same */
@@ -110,8 +108,8 @@ class TeacherRepositoryTest {
         assertEquals(teacher3, teacher_repo.update(teacher3));
 
         /* modify the Last Name attribute from existing teacher1 in repo */
-        String nameBefore= teacher1.getLastName();
-        String nameAfter= nameBefore.substring(0,3)+".";
+        String nameBefore = teacher1.getLastName();
+        String nameAfter = nameBefore.substring(0, 3) + ".";
         teacher1.setLastName(nameAfter);
 
         assertNull(teacher_repo.update(teacher1));

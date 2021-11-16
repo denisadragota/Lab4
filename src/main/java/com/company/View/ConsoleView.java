@@ -16,11 +16,9 @@ import java.util.Scanner;
  * class ConsoleView uses the RegistrationSystem controller
  * provides a menu with student and teacher side, with specific actions
  * provides Input validation methods, stores currently logged In student or teacher
- * @version
  *
- *          13.11.2021
- *  @author
- *          Denisa Dragota
+ * @author Denisa Dragota
+ * @version 13.11.2021
  */
 public class ConsoleView {
 
@@ -79,7 +77,7 @@ public class ConsoleView {
         //repeats until input is a valid Student id
         do {
             validStudentId = true;
-            long stud_id = this.validateNumberInput("\nChoose id of the student you want to enroll");
+            long stud_id = this.validateNumberInput("\nChoose id of the student you want to enroll: ");
 
             try {
                 givenStudent = controller.findOneStudent(stud_id);
@@ -109,7 +107,7 @@ public class ConsoleView {
         do {
             validCourseId = true;
 
-            long course_id = this.validateNumberInput("\nChoose course id");
+            long course_id = this.validateNumberInput("\nChoose course id: ");
 
             try {
                 givenCourse = controller.findOneCourse(course_id);
@@ -130,9 +128,9 @@ public class ConsoleView {
      * enrolls the student to the course
      */
     public void option1() {
-        Student givenStudent=null;
+        Student givenStudent = null;
         //if the teacher is logged, he can choose the student to enroll
-        if(loggedStudentId==null) {
+        if (loggedStudentId == null) {
             System.out.println();
             for (Student stud : controller.getAllStudents()) {
                 System.out.println(stud);
@@ -140,12 +138,11 @@ public class ConsoleView {
 
             //Choosing a Student id
             givenStudent = this.validateStudentInput();
-        }
-        else //if the student is logged in, he will be enrolled
+        } else //if the student is logged in, he will be enrolled
         {
             try {
                 givenStudent = this.controller.findOneStudent(loggedStudentId);
-            }catch(NullException e){
+            } catch (NullException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -234,7 +231,7 @@ public class ConsoleView {
      */
     public void option6() {
 
-        Teacher newCourseTeacher=null;
+        Teacher newCourseTeacher = null;
         String answear;
 
         //asks user if the teacher is new or not
@@ -245,10 +242,10 @@ public class ConsoleView {
 
         // add new teacher to the repo
         if (answear.equals("Y")) {
-            System.out.println("Enter First name of the teacher");
+            System.out.println("Enter First name of the teacher: ");
             String newTeacherFirstName = in.next();
 
-            System.out.println("Enter Last name of the teacher");
+            System.out.println("Enter Last name of the teacher: ");
             String newTeacherLastName = in.next();
 
             long newTeacherId = ((long) controller.getAllTeachers().size()) + 1;
@@ -258,7 +255,7 @@ public class ConsoleView {
         else {
             try {
                 newCourseTeacher = this.controller.findOneTeacher(this.loggedTeacherId);
-            }catch(NullException e){
+            } catch (NullException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -266,10 +263,10 @@ public class ConsoleView {
         System.out.println("Enter name of the course");
         String newCourseName = in.next();
 
-        System.out.println("Enter credits number of the course");
+        System.out.println("Enter credits number of the course: ");
         int newCourseCredits = in.nextInt();
 
-        System.out.println("Enter maximum enrollment number of the course");
+        System.out.println("Enter maximum enrollment number of the course: ");
         int newCourseMaxEnrollment = in.nextInt();
 
         long newCourseId = ((long) controller.getAllCourses().size()) + 1;
@@ -288,7 +285,7 @@ public class ConsoleView {
      * teacher gives the course id and the new credits number,
      * input is validated
      */
-    public void option7()  {
+    public void option7() {
 
         //choose from the loggedIn teacher's courses
         System.out.println();
@@ -296,7 +293,7 @@ public class ConsoleView {
             for (Course course : controller.findOneTeacher(loggedTeacherId).getCourses()) {
                 System.out.println(course);
             }
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
         }
 
@@ -304,7 +301,7 @@ public class ConsoleView {
         int new_credits = 0;
         boolean okCredits = true;
         do {
-            System.out.println("\nEnter the new credits number:");
+            System.out.println("\nEnter the new credits number: ");
             //verify input to be an int number
             try {
                 new_credits = in.nextInt();
@@ -337,10 +334,10 @@ public class ConsoleView {
      */
     public void option8() {
         //the logged In teacher
-        Teacher givenTeacher=null;
+        Teacher givenTeacher = null;
         try {
             givenTeacher = this.controller.findOneTeacher(this.loggedTeacherId);
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
         }
 
@@ -357,7 +354,7 @@ public class ConsoleView {
             if (controller.deleteCourseFromTeacher(givenTeacher, choosenCourse)) {
                 System.out.println("Course was deleted from teacher " + givenTeacher.getFirstName());
             }
-        } catch (IOException|NullException | InputException e) {
+        } catch (IOException | NullException | InputException e) {
             System.out.println(e.getMessage());
         }
         System.out.println();
@@ -396,6 +393,7 @@ public class ConsoleView {
 
     /**
      * Log In by Id for the Student, the entered id is validated if it exists in the Repo
+     *
      * @return true if the studentId exists in the Repo, else false
      */
     public boolean logInStudent() {
@@ -409,7 +407,7 @@ public class ConsoleView {
             } else
                 this.loggedStudentId = studId;
             return true;
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -417,9 +415,10 @@ public class ConsoleView {
 
     /**
      * Log In by Id for the Teacher, the entered id is validated if it exists in the Repo
+     *
      * @return true if the teacherId exists in the Repo, else false
      */
-    public boolean logInTeacher(){
+    public boolean logInTeacher() {
         System.out.println("---------LOG IN TEACHER---------");
         System.out.println("Enter your ID: ");
         long teacherId = in.nextLong();
@@ -430,7 +429,7 @@ public class ConsoleView {
             } else
                 this.loggedTeacherId = teacherId;
             return true;
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -441,15 +440,15 @@ public class ConsoleView {
      * Show Menu for the logged In Student, showing details about his credits and enrolled courses,
      * showing possible actions
      */
-    public void printStudentMenu(){
+    public void printStudentMenu() {
         System.out.println("---------STUDENT MENU---------");
         try {
             Student loggedInStudent = this.controller.findOneStudent(loggedStudentId);
-            System.out.println("Welcome, "+ loggedInStudent.getFirstName()+" "+ loggedInStudent.getLastName());
+            System.out.println("Welcome, " + loggedInStudent.getFirstName() + " " + loggedInStudent.getLastName());
             System.out.println("Your status: ");
-            System.out.println("Credits: "+ loggedInStudent.getTotalCredits());
+            System.out.println("Credits: " + loggedInStudent.getTotalCredits());
             System.out.println("Enrolled courses: ");
-            for(Course course: loggedInStudent.getEnrolledCourses())
+            for (Course course : loggedInStudent.getEnrolledCourses())
                 System.out.println(course);
             System.out.println();
             System.out.println("1. Enroll to a course");
@@ -457,7 +456,7 @@ public class ConsoleView {
             System.out.println("3. Sort courses by number credits");
             System.out.println("4. Filter courses by > 10 credits");
             System.out.println("0. Exit.");
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -466,7 +465,7 @@ public class ConsoleView {
      * Show Menu for the logged In Teacher, showing details about his teaching courses,
      * showing possible actions
      */
-    public void printTeacherMenu(){
+    public void printTeacherMenu() {
         System.out.println("---------TEACHER MENU---------");
         try {
 
@@ -490,7 +489,7 @@ public class ConsoleView {
             System.out.println("9. Sort courses by number credits");
             System.out.println("10. Filter courses by > 10 credits");
             System.out.println("0. Exit.");
-        }catch(NullException e){
+        } catch (NullException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -503,7 +502,7 @@ public class ConsoleView {
      * deleting a course, sorting courses by credits number,
      * filtering courses by having more than 10 credits, pressing 0 for Exit
      */
-    public void teacherMenu(){
+    public void teacherMenu() {
         boolean stay = true;
         int key = 0;
 
@@ -531,7 +530,7 @@ public class ConsoleView {
                     try {
                         this.controller.writeEnrollment();
                         this.controller.saveExit();
-                    }catch(IOException e){
+                    } catch (IOException e) {
                         System.out.println(e.getMessage());
                     }
                     System.out.println("Goodbye!");
@@ -597,7 +596,7 @@ public class ConsoleView {
      * enrolling to a course, showing available courses, sorting courses by credits number,
      * filtering courses by having more than 10 credits, pressing 0 for Exit
      */
-    public void studentMenu(){
+    public void studentMenu() {
         boolean stay = true;
         int key = 0;
 
@@ -625,7 +624,7 @@ public class ConsoleView {
                     try {
                         this.controller.writeEnrollment();
                         this.controller.saveExit();
-                    }catch(IOException e){
+                    } catch (IOException e) {
                         System.out.println(e.getMessage());
                     }
                     System.out.println("Goodbye!");
@@ -692,16 +691,16 @@ public class ConsoleView {
 
                 //LogIn in Student Menu
                 case 1:
-                    if(logInStudent())
+                    if (logInStudent())
                         this.studentMenu();
-                    this.loggedStudentId=null;
+                    this.loggedStudentId = null;
                     break;
 
                 //LogIn in Teacher Menu
                 case 2:
-                    if(logInTeacher())
+                    if (logInTeacher())
                         this.teacherMenu();
-                    this.loggedTeacherId=null;
+                    this.loggedTeacherId = null;
                     break;
             }
         }

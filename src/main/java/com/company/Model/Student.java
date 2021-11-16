@@ -10,52 +10,58 @@ import java.util.Objects;
  * stores and provides information about a student's : id, first name, last name,
  * total credits number and enrolled courses
  *
- * @version
- *          13.11.2021
- * @author
- *          Denisa Dragota
+ * @author Denisa Dragota
+ * @version 13.11.2021
  */
-public class Student extends Person implements Serializable{
+public class Student extends Person implements Serializable {
     private long studentId; //unique identifier of an object
     private transient int totalCredits;
     @Serial
     private static final long serialVersionUID = 1L;
     private transient List<Course> enrolledCourses;
 
-    public Student(long studentId,String firstName, String lastName) {
+    public Student(long studentId, String firstName, String lastName) {
         this.studentId = studentId;
         this.totalCredits = 0;
-        this.enrolledCourses = new ArrayList<>(){};
-        this.firstName=firstName;
-        this.lastName=lastName;
+        this.enrolledCourses = new ArrayList<>() {
+        };
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
-    public Student(){};
+
+    public Student() {
+    }
+
+    ;
 
     /**
-     *  writes serialized Student objects to the file
-     *  custom serialization for the attribute (courses enrolled list) as an empty list
+     * writes serialized Student objects to the file
+     * custom serialization for the attribute (courses enrolled list) as an empty list
      * in order to avoid circular references
+     *
      * @param oos is the ObjectOutputStream object
      * @throws IOException if there occurs an error with the ObjectOutputStream object
      */
     @Serial
     private void writeObject(ObjectOutputStream oos) throws IOException {
         oos.defaultWriteObject();
-        oos.writeObject(new ArrayList<>(){});
+        oos.writeObject(new ArrayList<>() {
+        });
     }
 
     /**
      * reads serialized objects from the file,
      * reads the custom serialized transient attribute (enrolled courses list)
+     *
      * @param ois is an ObjectInputStream object
      * @throws ClassNotFoundException
-     * @throws IOException if there occurs an error with the ObjectInputStream
+     * @throws IOException            if there occurs an error with the ObjectInputStream
      */
     @Serial
-    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException{
+    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
         ois.defaultReadObject();
-        this.enrolledCourses=(List<Course>)ois.readObject();
-        this.totalCredits=0;
+        this.enrolledCourses = (List<Course>) ois.readObject();
+        this.totalCredits = 0;
     }
 
     @Override
@@ -63,7 +69,7 @@ public class Student extends Person implements Serializable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Student student = (Student) o;
-        return studentId == student.studentId ;
+        return studentId == student.studentId;
     }
 
 
@@ -93,9 +99,9 @@ public class Student extends Person implements Serializable{
 
     /**
      * comparation based on id (unique identifier)
+     *
      * @param other, Student object to compare with
      * @return true if objects are equal, else false
-     *
      */
     public boolean compareTo(Student other) {
 
@@ -109,7 +115,7 @@ public class Student extends Person implements Serializable{
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", studentId=" + studentId +
-                ", totalCredits=" + totalCredits+
+                ", totalCredits=" + totalCredits +
                 '}';
     }
 }

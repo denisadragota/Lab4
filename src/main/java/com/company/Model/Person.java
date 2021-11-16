@@ -1,18 +1,19 @@
 package com.company.Model;
+
 import java.io.Serializable;
 
 /**
  * Abstract class Person
  * stores and provides information about a person's: first and last name
- * @version
- *          13.11.2021
- * @author
- *          Denisa Dragota
+ *
+ * @author Denisa Dragota
+ * @version 13.11.2021
  */
 public abstract class Person implements Serializable {
 
     protected String firstName;
     protected String lastName;
+
     public String getFirstName() {
         return firstName;
     }

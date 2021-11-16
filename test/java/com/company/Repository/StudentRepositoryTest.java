@@ -16,10 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * StudentRepositoryTest class
  * testing StudentRepository class
- * @version
- *          13.11.2021
- * @author
- *          Denisa Dragota
+ *
+ * @author Denisa Dragota
+ * @version 13.11.2021
  */
 class StudentRepositoryTest {
 
@@ -38,30 +37,30 @@ class StudentRepositoryTest {
 
         /*creating instances to test*/
         /* the first 4 students exist in the file */
-        student1 = new Student(1,"Denisa","Dragota");
-        student2 = new Student(2,"Mihnea", "Aleman");
-        student3 = new Student(3,"Raul","Barbat");
-        student4 = new Student(4,"Evelin","Bohm");
+        student1 = new Student(1, "Denisa", "Dragota");
+        student2 = new Student(2, "Mihnea", "Aleman");
+        student3 = new Student(3, "Raul", "Barbat");
+        student4 = new Student(4, "Evelin", "Bohm");
         student5 = new Student(5, "Maria", "Morar");
 
 
-        stud_repo=new StudentRepository("students.ser");
+        stud_repo = new StudentRepository("students.ser");
     }
 
     /**
      * test findAll() method
      */
     @Test
-    void findAll(){
+    void findAll() {
 
         /*creating the expected result list */
         Student[] students = new Student[4];
-        students[0]=student1;
-        students[1]=student2;
-        students[2]=student3;
-        students[3]=student4;
+        students[0] = student1;
+        students[1] = student2;
+        students[2] = student3;
+        students[3] = student4;
 
-        for(Student stud : students){
+        for (Student stud : students) {
             assertTrue(stud_repo.findAll().contains(stud));
         }
 
@@ -71,16 +70,16 @@ class StudentRepositoryTest {
      * test findOne() method
      */
     @Test
-    void findOne() throws NullException{
+    void findOne() throws NullException {
 
         /* search for null student id */
-        Assertions.assertThrows(NullException.class,()->stud_repo.findOne(null));
+        Assertions.assertThrows(NullException.class, () -> stud_repo.findOne(null));
 
         /*search for non-existing student id */
         assertNull(stud_repo.findOne(123L));
 
         /*search for existing student id */
-        assertEquals(student1,stud_repo.findOne(1L));
+        assertEquals(student1, stud_repo.findOne(1L));
     }
 
     /**
@@ -90,7 +89,7 @@ class StudentRepositoryTest {
     void save() throws NullException, IOException {
 
         /* save stud_repo size at the beginning */
-        int sizeBefore=((Collection<?>)stud_repo.findAll()).size();
+        int sizeBefore = ((Collection<?>) stud_repo.findAll()).size();
 
         /* add an already existing instance in the repo */
         /* will not be added, size remains the same */
@@ -139,7 +138,7 @@ class StudentRepositoryTest {
      * test delete() method
      */
     @Test
-    void delete() throws NullException, IOException{
+    void delete() throws NullException, IOException {
 
         /* try to delete a non-existing studentId in the repo */
         assertNull(stud_repo.delete(student5.getStudentId()));
